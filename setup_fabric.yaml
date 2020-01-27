@@ -28,6 +28,12 @@
       rd: auto
       vni: "40003"
   
+  - name: "Add IPv4 AF to VRF"
+    nxos_vrf_af:
+      vrf: devlit-4001
+      afi: ipv4
+      route_target_both_auto_evpn: yes
+
   - name: "Create VLANs"
     nxos_vlans:
       config:
