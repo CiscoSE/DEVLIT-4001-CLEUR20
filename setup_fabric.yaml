@@ -40,8 +40,8 @@
     nxos_config:
       lines:
         - private-vlan primary
-        - private-vlan association "{{ item.assoc }}"
-      parents: vlan "{{ item.id }}"
+        - private-vlan association {{ item.assoc }}
+      parents: vlan {{ item.id }}
     loop:
       - { id: '2020', assoc: '2021-2022' }
       - { id: '2030', assoc: '2031' }
@@ -49,8 +49,8 @@
   - name: "Configure Secondary VLANs"
     nxos_config:
       lines:
-        - private-vlan "{{ item.type }}"
-      parents: vlan "{{ item.id }}"
+        - private-vlan {{ item.type }}
+      parents: vlan {{ item.id }}
     loop:
       - { id: '2021', type: 'community' }
       - { id: '2022', type: 'community' }
@@ -74,8 +74,8 @@
     nxos_config:
       lines:
         - fabric forwarding mode anycast-gateway
-        - private-vlan mapping "{{ item.assoc }}"
-      parents: interface vlan "{{ vlan.id }}"
+        - private-vlan mapping {{ item.assoc }}
+      parents: interface vlan {{ vlan.id }}
     loop:
       - { id: '2020', assoc: '2021-2022' }
       - { id: '2030', assoc: '2031' }
