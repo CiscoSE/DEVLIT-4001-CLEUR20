@@ -26,7 +26,7 @@
       name: devlit-4001
       admin_state: up
       rd: auto
-      vni: 40003
+      vni: "40003"
   
   - name: "Create VLANs"
     nxos_vlans:
