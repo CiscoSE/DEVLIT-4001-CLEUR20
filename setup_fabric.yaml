@@ -89,7 +89,7 @@
       lines:
         - fabric forwarding mode anycast-gateway
         - private-vlan mapping {{ item.assoc }}
-      parents: interface vlan {{ vlan.id }}
+      parents: interface vlan {{ item.id }}
     loop:
       - { id: '2020', assoc: '2021-2022' }
       - { id: '2030', assoc: '2031' }
