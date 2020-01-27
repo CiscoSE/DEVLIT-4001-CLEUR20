@@ -1,0 +1,39 @@
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/env python3
+    ansible_connection: network_cli
+    ansible_network_os: nxos
+    ansible_user: _SWITCH_USER_NAME_
+    ansible_password: _SWITCH_PASSWORD_
+  children:
+    vcenter:
+      hosts:
+        localhost:
+          ansible_host: 127.0.0.1
+      vars:
+        vcenter_name: hx-vcenter.gve-rtp-dcv.cisco.com
+        vcenter_user: _VMWARE_ADMIN_NAME_
+        vcenter_pass: _VMWARE_ADMIN_PASS_
+        vm_datacenter: DC1
+        vm_cluster: GVE-RTP-HX
+        vm_folder: DEVLIT-4001
+        dvswitch: VXLAN-Fabric1-DVS
+
+    leafs:
+      hosts:
+        fabric1-leaf1:
+          ansible_host: 10.60.66.111
+        fabric1-leaf2:
+          ansible_host: 10.60.66.112
+      vars:
+        primary_vlans:
+          - 2010
+          - 2020
+          - 2030
+    spines:
+      hosts:
+        fabric1-spine1:
+          ansible_host: 10.60.66.121
+        fabric1-spine2:
+          ansible_host: 10.60.66.122
+

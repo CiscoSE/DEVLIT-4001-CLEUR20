@@ -1,0 +1,47 @@
+---
+- name: Set All VMs to Segmented (no PVLANs)
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+  - name: Set Distributed Port Group Settings
+    vmware_guest:
+      hostname: "{{ vcenter_name }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      validate_certs: True
+      datacenter: "{{ vm_datacenter }}"
+      cluster: "{{ vm_cluster }}"
+      folder: "{{ vm_folder }}"
+      name: "{{ item.name }}"
+      networks:
+      - name: "{{ item.network }}"
+    loop:
+      - { name: uSeg-Web1, network: uSeg_WebA_FabricA }
+      - { name: uSeg-Web2, network: uSeg_WebA_FabricB }
+      - { name: uSeg-Web3, network: uSeg_WebB_FabricA }
+      - { name: uSeg-Web4, network: uSeg_WebB_FabricB }
+      - { name: uSeg-DB1, network: uSeg_DB_FabricA }
+      - { name: uSeg-DB2, network: uSeg_DB_FabricA }
+
+- name: Reset Fabric L3 Interfaces
+  hosts: leafs
+  gather_facts: no
+
+  tasks:
+  - name: "Shutdown Primary VLAN SVIs"
+    nxos_config:
+      lines:
+        - interface vlan "{{ item }}"
+        - shutdown
+    loop:
+      - primary_vlans
+
+  - name: "Bring up Primary VLAN SVIs"
+    nxos_config:
+      lines:
+        - interface vlan "{{ item }}"
+        - no shutdown
+    loop:
+      - primary_vlans
+

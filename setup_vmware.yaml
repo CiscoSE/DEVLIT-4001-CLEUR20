@@ -1,0 +1,30 @@
+---
+- name: Create the Primary and Secondary PVLANs in VMware
+  hosts: vcenter
+  gather_facts: no
+  vars:
+    primary_pvlans:
+      - primary_pvlan_id: 2020
+      - primary_pvlan_id: 2030
+    secondary_pvlans:
+      - primary_pvlan_id: 2020
+        secondary_pvlan_id: 2021
+        pvlan_type: community
+      - primary_pvlan_id: 2020
+        secondary_pvlan_id: 2022
+        pvlan_type: community
+      - primary_pvlan_id: 2030
+        secondary_pvlan_id: 2031
+        pvlan_type: isolated
+
+  tasks:
+  - name: Create PVLANs in dvSwitch
+    vmware_dvswitch_pvlans:
+      hostname: "{{ vcenter_name }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      validate_certs: True
+      switch: "{{ dvswitch }}"
+      primary_pvlans: "{{ primary_pvlans }}"
+      secondary_pvlans: "{{ secondary_pvlans }}"
+
