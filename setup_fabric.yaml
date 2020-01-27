@@ -11,56 +11,65 @@
       - { name: uSeg_ZoneC, id: '2030', vni: '32030', primary: 'yes', associates: '2031' }
       - { name: uSeg_DB1, id: '2031', vni: '32031', primary: 'no', type: isolated }
     svi:
-      - { name: "vlan2010", ip: 192.168.10.1/24, vrf: devlit-4001, associates: 'none'  }
-      - { name: "vlan2020", ip: 192.168.20.1/24, vrf: devlit-4001, associates: '2021-2022' }
-      - { name: "vlan2030", ip: 192.168.30.1/24, vrf: devlit-4001, associates: '2031' }
+      - { name: "vlan2010", ip: 192.168.10.1/24, vrf: devlit-4001 }
+      - { name: "vlan2020", ip: 192.168.20.1/24, vrf: devlit-4001 }
+      - { name: "vlan2030", ip: 192.168.30.1/24, vrf: devlit-4001 }
 
   tasks:
-  - name: "Create Native VLANs"
-    loop: "{{ vlans }}"
-    where: item.primary == 'native'
-    nxos_config:
-      lines:
-        - vn-segment "{{ item.vni }}"
-        - name "{{ item.name }}"
-      parents: vlan "{{ item.id }}"
+  - name: "Create VLANs"
+    nxos_vlans:
+      vlan_id: "{{ item.id }}"
+      name: "{{ item.name }}"
+      mapped_vni: "{{ item.vni }}"
+      enabled: 'yes'
+    loop:
+      - { name: uSeg_ZoneA, id: '2010', vni: '32010' }
+      - { name: uSeg_ZoneB, id: '2020', vni: '32020' }
+      - { name: uSeg_Web1, id: '2021', vni: '32021' }
+      - { name: uSeg_Web2, id: '2022', vni: '32022' }
+      - { name: uSeg_ZoneC, id: '2030', vni: '32030' }
+      - { name: uSeg_DB1, id: '2031', vni: '32031' }
 
-  - name: "Create Primary VLANs"
-    loop: "{{ vlans }}"
-    where: item.primary == 'yes'
+  - name: "Configure Primary VLANs"
     nxos_config:
       lines:
-        - vn-segment "{{ item.vni }}"
-        - name "{{ item.name }}"
         - private-vlan primary
-        - private-vlan association "{{ item.associates }}"
+        - private-vlan association "{{ item.assoc }}"
       parents: vlan "{{ item.id }}"
+    loop:
+      - { id: '2020', assoc: '2021-2022' }
+      - { id: '2030', assoc: '2031' }
 
-  - name: "Create Secondary VLANs"
-    loop: "{{ vlans }}"
-    where: item.primary == 'no'
+  - name: "Configure Secondary VLANs"
     nxos_config:
       lines:
-        - vn-segment "{{ item.vni }}"
-        - name "{{ item.name }}"
         - private-vlan "{{ item.type }}"
       parents: vlan "{{ item.id }}"
+    loop:
+      - { id: '2021', type: 'community' }
+      - { id: '2022', type: 'community' }
+      - { id: '2031', type: 'isolated' }
+
+  - name: "Create VRF SVI Interfaces"
+    nxos_vrf_interface:
+      interface: "{{ item.name }}"
+      vrf: "{{ item.vrf }}"
+    loop: "{{ svis }}"
 
   - name: "Create Native SVIs"
+    nxos_l3_interfaces:
+      config:
+        - name: "{{ item.name }}"
+          ipv4:
+            - address: "{{ item.ip }}"
     loop: "{{ svis }}"
-    where: item.associates == 'none'
-    nxos_config:
-      lines:
-        - vrf member "{{ item.vrf }}"
-        - ip address "{{ item.ip }}"
-        - fabric forwarding mode anycast-gateway
 
-  - name: "Create Primary SVIs"
-    loop: "{{ svis }}"
-    where: item.associates != 'none'
+  - name: "Config Primary SVIs"
     nxos_config:
       lines:
-        - vrf member "{{ item.vrf }}"
-        - ip address "{{ item.ip }}"
         - fabric forwarding mode anycast-gateway
-        - private-vlan mapping "{{ item.associates }}"
+        - private-vlan mapping "{{ item.assoc }}"
+      parents: interface vlan "{{ vlan.id }}"
+    loop:
+      - { id: '2020', assoc: '2021-2022' }
+      - { id: '2030', assoc: '2031' }
