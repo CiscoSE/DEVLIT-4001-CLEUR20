@@ -18,10 +18,11 @@
   tasks:
   - name: "Create VLANs"
     nxos_vlans:
-      vlan_id: "{{ item.id }}"
-      name: "{{ item.name }}"
-      mapped_vni: "{{ item.vni }}"
-      enabled: 'yes'
+      config:
+        - vlan_id: "{{ item.id }}"
+          name: "{{ item.name }}"
+          mapped_vni: "{{ item.vni }}"
+          enabled: 'yes'
     loop:
       - { name: uSeg_ZoneA, id: '2010', vni: '32010' }
       - { name: uSeg_ZoneB, id: '2020', vni: '32020' }
