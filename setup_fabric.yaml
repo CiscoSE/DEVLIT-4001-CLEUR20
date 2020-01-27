@@ -21,6 +21,13 @@
       feature: private-vlan
       state: enabled
   
+  - name: "Create VRF"
+    nxos_vrf:
+      name: devlit-4001
+      admin_state: up
+      rd: auto
+      vni: 40003
+  
   - name: "Create VLANs"
     nxos_vlans:
       config:
