@@ -1,0 +1,66 @@
+---
+- name: Create VLANs and SVIs in NX-OS
+  hosts: leafs
+  gather_facts: no
+  vars:
+    vlans:
+      - { name: uSeg_ZoneA, id: '2010', vni: '32010', primary: native }
+      - { name: uSeg_ZoneB, id: '2020', vni: '32020', primary: 'yes', associates: '2021-2022' }
+      - { name: uSeg_Web1, id: '2021', vni: '32021', primary: 'no', type: community }
+      - { name: uSeg_Web2, id: '2022', vni: '32022', primary: 'no', type: community }
+      - { name: uSeg_ZoneC, id: '2030', vni: '32030', primary: 'yes', associates: '2031' }
+      - { name: uSeg_DB1, id: '2031', vni: '32031', primary: 'no', type: isolated }
+    svi:
+      - { name: "vlan2010", ip: 192.168.10.1/24, vrf: devlit-4001, associates: 'none'  }
+      - { name: "vlan2020", ip: 192.168.20.1/24, vrf: devlit-4001, associates: '2021-2022' }
+      - { name: "vlan2030", ip: 192.168.30.1/24, vrf: devlit-4001, associates: '2031' }
+
+  tasks:
+  - name: "Create Native VLANs"
+    loop: "{{ vlans }}"
+    where: item.primary == 'native'
+    nxos_config:
+      lines:
+        - vn-segment "{{ item.vni }}"
+        - name "{{ item.name }}"
+      parents: vlan "{{ item.id }}"
+
+  - name: "Create Primary VLANs"
+    loop: "{{ vlans }}"
+    where: item.primary == 'yes'
+    nxos_config:
+      lines:
+        - vn-segment "{{ item.vni }}"
+        - name "{{ item.name }}"
+        - private-vlan primary
+        - private-vlan association "{{ item.associates }}"
+      parents: vlan "{{ item.id }}"
+
+  - name: "Create Secondary VLANs"
+    loop: "{{ vlans }}"
+    where: item.primary == 'no'
+    nxos_config:
+      lines:
+        - vn-segment "{{ item.vni }}"
+        - name "{{ item.name }}"
+        - private-vlan "{{ item.type }}"
+      parents: vlan "{{ item.id }}"
+
+  - name: "Create Native SVIs"
+    loop: "{{ svis }}"
+    where: item.associates == 'none'
+    nxos_config:
+      lines:
+        - vrf member "{{ item.vrf }}"
+        - ip address "{{ item.ip }}"
+        - fabric forwarding mode anycast-gateway
+
+  - name: "Create Primary SVIs"
+    loop: "{{ svis }}"
+    where: item.associates != 'none'
+    nxos_config:
+      lines:
+        - vrf member "{{ item.vrf }}"
+        - ip address "{{ item.ip }}"
+        - fabric forwarding mode anycast-gateway
+        - private-vlan mapping "{{ item.associates }}"
