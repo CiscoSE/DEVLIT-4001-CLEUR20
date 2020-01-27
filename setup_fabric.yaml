@@ -56,7 +56,14 @@
       - { id: '2022', type: 'community' }
       - { id: '2031', type: 'isolated' }
 
-  - name: "Create VRF SVI Interfaces"
+  - name: "Create SVI Interfaces"
+    nxos_interfaces:
+      config:
+        - name: "{{ item.name }}"
+          enabled: yes
+    loop: "{{ svis }}"
+
+  - name: "Assign VRF to SVI Interfaces"
     nxos_vrf_interface:
       interface: "{{ item.name }}"
       vrf: "{{ item.vrf }}"
