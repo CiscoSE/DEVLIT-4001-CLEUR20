@@ -36,6 +36,11 @@
         - shutdown
     loop: "{{ primary_vlans }}"
 
+  - name: "Clear MAC Address Tables"
+    nxos_command:
+      commands:
+        - clear mac address-table dynamic
+  
   - name: "Bring up Primary VLAN SVIs"
     nxos_config:
       lines:
