@@ -32,16 +32,14 @@
   - name: "Shutdown Primary VLAN SVIs"
     nxos_config:
       lines:
-        - interface vlan "{{ item }}"
+        - interface vlan {{ item }}
         - shutdown
-    loop:
-      - primary_vlans
+    loop: "{{ primary_vlans }}"
 
   - name: "Bring up Primary VLAN SVIs"
     nxos_config:
       lines:
-        - interface vlan "{{ item }}"
+        - interface vlan {{ item }}
         - no shutdown
-    loop:
-      - primary_vlans
+    loop: "{{ primary_vlans }}"
 
